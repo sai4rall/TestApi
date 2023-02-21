@@ -1,21 +1,45 @@
-/*
 package com.example.testApi.service;
 
 import com.example.testApi.model.TestInput;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import software.amazon.awssdk.auth.credentials.*;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
+import software.amazon.awssdk.services.secretsmanager.model.CreateSecretRequest;
+import software.amazon.awssdk.services.secretsmanager.model.CreateSecretResponse;
+import software.amazon.awssdk.services.secretsmanager.model.SecretsManagerException;
 
 @Service
 public class TestService {
-    public String addApplication(TestInput testInput){
-        if(postSecret(testInput.getUsername(),testInput.getPassword()));
-        return
+    @Value("${aws.accessKeyId}")
+    String awskeyId;
+
+    @Value("${aws.secret.access.key}")
+    String awssecretKey;
+    public String addApplication(TestInput testInput) {
+        String secret = "{\"Username\":\"" + testInput.getUsername() + "\", \"Password\":\"" + testInput.getPassword() + "\"}";
+
+        if (createNewSecret(testInput.getRequestingApplicationName(), secret)) {
+            //do mysql
+            return "WOrking";
+        }
+        return "Not Working";
     }
 
-    private boolean postSecret(String username, String password) {
 
-    }
-    public static String createNewSecret( SecretsManagerClient secretsClient, String secretName, String secretValue) {
-
+    private boolean createNewSecret(String secretName, String secretValue) {
+        AwsBasicCredentials awsCreds = AwsBasicCredentials.create(
+                awskeyId,
+                awssecretKey);
+        SecretsManagerClient secretsClient = SecretsManagerClient.builder()
+                .region(Region.US_EAST_1)
+                .credentialsProvider(new AwsCredentialsProvider() {
+                    @Override
+                    public AwsCredentials resolveCredentials() {
+                        return awsCreds;
+                    }
+                }) .build();
         try {
             CreateSecretRequest secretRequest = CreateSecretRequest.builder()
                     .name(secretName)
@@ -24,15 +48,13 @@ public class TestService {
                     .build();
 
             CreateSecretResponse secretResponse = secretsClient.createSecret(secretRequest);
-            return secretResponse.arn();
+            System.out.println(secretResponse.arn());
+            return true;
 
         } catch (SecretsManagerException e) {
-            System.err.println(e.awsErrorDetails().errorMessage());
-            System.exit(1);
+            throw e;
         }
-        return "";
     }
 
 
 }
-*/
