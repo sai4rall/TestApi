@@ -1,6 +1,9 @@
 package com.example.testApi.service;
 
+import com.example.testApi.model.RequestingApp;
 import com.example.testApi.model.TestInput;
+import com.example.testApi.repository.RequestingAppRepo;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.auth.credentials.*;
@@ -17,11 +20,19 @@ public class TestService {
 
     @Value("${aws.secret.access.key}")
     String awssecretKey;
+
+    @Autowired
+    RequestingAppRepo requestingAppRepo;
     public String addApplication(TestInput testInput) {
         String secret = "{\"Username\":\"" + testInput.getUsername() + "\", \"Password\":\"" + testInput.getPassword() + "\"}";
 
         if (createNewSecret(testInput.getRequestingApplicationName(), secret)) {
             //do mysql
+            RequestingApp requestingApp=new RequestingApp();
+            requestingApp.setRequestingApplicationName(testInput.getRequestingApplicationName());
+            requestingApp.setDbCredentionalsConfigured(1);
+            requestingApp.setIsActive(testInput.getIsActive());
+            requestingAppRepo.save(requestingApp);
             return "WOrking";
         }
         return "Not Working";
@@ -57,4 +68,16 @@ public class TestService {
     }
 
 
+    public Iterable<RequestingApp> getAll() {
+        return requestingAppRepo.findAll();
+    }
+
+    public String deleteApp(long id) {
+        try {
+            requestingAppRepo.deleteById(id);
+            return "deletion sucessful";
+        }catch (Exception e){
+            return "Exception :"+e.getMessage();
+        }
+    }
 }

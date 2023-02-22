@@ -1,12 +1,10 @@
 package com.example.testApi.controller;
 
+import com.example.testApi.model.RequestingApp;
 import com.example.testApi.model.TestInput;
 import com.example.testApi.service.TestService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 
@@ -19,8 +17,13 @@ public class TestController {
         return testService.addApplication(testInput);
 
     }
-    @DeleteMapping("/app")
-    public String deleteapp(@RequestBody @Valid TestInput testInput){
-        return "Hello";
+    @GetMapping(path="/all")
+    public @ResponseBody Iterable<RequestingApp> getAllUsers() {
+        // This returns a JSON or XML with the users
+        return testService.getAll();
+    }
+    @DeleteMapping("/app/{id}")
+    public String deleteapp(@PathVariable("id") int id){
+    return testService.deleteApp(id);
     }
 }
