@@ -12,6 +12,9 @@ import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.secretsmanager.model.CreateSecretRequest;
 import software.amazon.awssdk.services.secretsmanager.model.CreateSecretResponse;
 import software.amazon.awssdk.services.secretsmanager.model.SecretsManagerException;
+import software.amazon.awssdk.services.secretsmanager.model.UpdateSecretRequest;
+
+import java.util.Optional;
 
 @Service
 public class TestService {
@@ -32,25 +35,19 @@ public class TestService {
             requestingApp.setRequestingApplicationName(testInput.getRequestingApplicationName());
             requestingApp.setDbCredentionalsConfigured(1);
             requestingApp.setIsActive(testInput.getIsActive());
+            requestingApp.setCreatedBy(testInput.getCreatedby());
             requestingAppRepo.save(requestingApp);
-            return "WOrking";
+            return "App Inserted!";
+        }else{
+            return "app insertion failed!";
+
         }
-        return "Not Working";
     }
 
 
     private boolean createNewSecret(String secretName, String secretValue) {
-        AwsBasicCredentials awsCreds = AwsBasicCredentials.create(
-                awskeyId,
-                awssecretKey);
-        SecretsManagerClient secretsClient = SecretsManagerClient.builder()
-                .region(Region.US_EAST_1)
-                .credentialsProvider(new AwsCredentialsProvider() {
-                    @Override
-                    public AwsCredentials resolveCredentials() {
-                        return awsCreds;
-                    }
-                }) .build();
+
+        SecretsManagerClient secretsClient = getSecretManagerClient();
         try {
             CreateSecretRequest secretRequest = CreateSecretRequest.builder()
                     .name(secretName)
@@ -66,7 +63,38 @@ public class TestService {
             throw e;
         }
     }
+    public  boolean updateMySecret( String secretName, String secretValue) {
+        SecretsManagerClient secretsClient = getSecretManagerClient();
 
+        try {
+            UpdateSecretRequest secretRequest = UpdateSecretRequest.builder()
+                    .secretId(secretName)
+                    .secretString(secretValue)
+                    .build();
+
+            secretsClient.updateSecret(secretRequest);
+            return true;
+
+        } catch (SecretsManagerException e) {
+            System.err.println(e.awsErrorDetails().errorMessage());
+            return false;
+
+        }
+    }
+    public SecretsManagerClient getSecretManagerClient(){
+        AwsBasicCredentials awsCreds = AwsBasicCredentials.create(
+                awskeyId,
+                awssecretKey);
+        SecretsManagerClient secretsClient = SecretsManagerClient.builder()
+                .region(Region.US_EAST_1)
+                .credentialsProvider(new AwsCredentialsProvider() {
+                    @Override
+                    public AwsCredentials resolveCredentials() {
+                        return awsCreds;
+                    }
+                }) .build();
+        return secretsClient;
+    }
 
     public Iterable<RequestingApp> getAll() {
         return requestingAppRepo.findAll();
@@ -78,6 +106,27 @@ public class TestService {
             return "deletion sucessful";
         }catch (Exception e){
             return "Exception :"+e.getMessage();
+        }
+    }
+
+    public String updateApp(long id, TestInput testInput) {
+        Optional<RequestingApp> app=requestingAppRepo.findById(id);
+        String secret = "{\"Username\":\"" + testInput.getUsername() + "\", \"Password\":\"" + testInput.getPassword() + "\"}";
+        if(app.isPresent()){
+            if(updateMySecret(testInput.getRequestingApplicationName(), secret)){
+                RequestingApp requestingApp=app.get();
+                requestingApp.setRequestingApplicationName(testInput.getRequestingApplicationName());
+                requestingApp.setDbCredentionalsConfigured(1);
+                requestingApp.setIsActive(testInput.getIsActive());
+                requestingApp.setCreatedBy(testInput.getCreatedby());
+                requestingAppRepo.save(requestingApp);
+                return "Successfully updated!";
+            }else {
+                return "unable to update secret";
+            }
+
+        }else{
+            return "app not found!";
         }
     }
 }

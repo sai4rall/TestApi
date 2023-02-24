@@ -7,7 +7,7 @@ import java.util.Date;
 public class RequestingApp {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private long id;
+    private Long id;
     @Column(name = "requesting_application_name")
     private String requestingApplicationName;
     @Column(name = "createdby")

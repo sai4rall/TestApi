@@ -26,4 +26,8 @@ public class TestController {
     public String deleteapp(@PathVariable("id") int id){
     return testService.deleteApp(id);
     }
+    @PutMapping("/app/{id}")
+    public String updateApp(@PathVariable("id") int id,@RequestBody @Valid TestInput testInput){
+        return testService.updateApp(id,testInput);
+    }
 }

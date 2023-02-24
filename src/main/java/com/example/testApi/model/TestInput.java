@@ -10,8 +10,19 @@ public class TestInput {
     private String username;
     @NotBlank(message = "password  cannot be blank")
     private String password;
+
+    public String getCreatedby() {
+        return createdby;
+    }
+
+    public void setCreatedby(String createdby) {
+        this.createdby = createdby;
+    }
+
+    @NotBlank(message = "created  cannot be blank")
+    private String createdby;
     @NotBlank(message = "isActive  cannot be blank")
-    private String isActive;
+    private int isActive;
 
     public String getRequestingApplicationName() {
         return requestingApplicationName;
@@ -37,11 +48,11 @@ public class TestInput {
         this.password = password;
     }
 
-    public String getIsActive() {
+    public int getIsActive() {
         return isActive;
     }
 
-    public void setIsActive(String isActive) {
+    public void setIsActive(int isActive) {
         this.isActive = isActive;
     }
 }
