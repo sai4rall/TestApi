@@ -1,7 +1,10 @@
 package com.example.testApi.service;
 
+import com.example.testApi.model.ClientConfigs;
+import com.example.testApi.model.Configs;
 import com.example.testApi.model.RequestingApp;
 import com.example.testApi.model.TestInput;
+import com.example.testApi.repository.ClientConfigsRepo;
 import com.example.testApi.repository.RequestingAppRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,6 +29,8 @@ public class TestService {
 
     @Autowired
     RequestingAppRepo requestingAppRepo;
+    @Autowired
+    ClientConfigsRepo clientConfigsRepo;
     public String addApplication(TestInput testInput) {
         String secret = "{\"Username\":\"" + testInput.getUsername() + "\", \"Password\":\"" + testInput.getPassword() + "\"}";
 
@@ -127,6 +132,58 @@ public class TestService {
 
         }else{
             return "app not found!";
+        }
+    }
+
+    public String addConfigs(Configs testInput) {
+       try {
+           ClientConfigs clientConfigs = new ClientConfigs();
+           clientConfigs.setClientName(testInput.getClientName());
+           clientConfigs.setActive(testInput.isActive()?1:0);
+           clientConfigs.setClientKafkaCOnnectUrl(testInput.getClientKafkaCOnnectUrl());
+           clientConfigs.setClientmskbrokers(testInput.getClientmskbrokers());
+           clientConfigs.setCreatedby(testInput.getCreatedby());
+           clientConfigsRepo.save(clientConfigs);
+           return "saved sucessfully";
+       }catch (Exception e){
+           e.printStackTrace();
+           return "save failed";
+       }
+    }
+
+    public Iterable<ClientConfigs> getAllConfigs() {
+    return clientConfigsRepo.findAll();
+    }
+
+    public String deleteConfig(long id) {
+        try {
+            if(clientConfigsRepo.findById(id).isPresent()) {
+                clientConfigsRepo.deleteById(id);
+                return "delete Successfull";
+            }else{
+                return "Invalid Id";
+            }
+        }catch (Exception e){
+            return "delete failed!";
+        }
+    }
+
+    public String updateConfigs(long id, Configs configs) {
+        try {
+            Optional<ClientConfigs> configsOptional=clientConfigsRepo.findById(id);
+            if(configsOptional.isPresent()) {
+                ClientConfigs clientConfigs=configsOptional.get();
+                clientConfigs.setClientName(configs.getClientName());
+                clientConfigs.setClientmskbrokers(configs.getClientmskbrokers());
+                clientConfigs.setCreatedby(configs.getCreatedby());
+                clientConfigs.setClientKafkaCOnnectUrl(configs.getClientKafkaCOnnectUrl());
+                clientConfigs.setActive(configs.isActive()?1:0);
+                return "delete Successfull";
+            }else{
+                return "Invalid Id";
+            }
+        }catch (Exception e){
+            return "delete failed!";
         }
     }
 }

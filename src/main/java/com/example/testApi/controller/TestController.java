@@ -1,5 +1,7 @@
 package com.example.testApi.controller;
 
+import com.example.testApi.model.ClientConfigs;
+import com.example.testApi.model.Configs;
 import com.example.testApi.model.RequestingApp;
 import com.example.testApi.model.TestInput;
 import com.example.testApi.service.TestService;
@@ -29,5 +31,26 @@ public class TestController {
     @PutMapping("/app/{id}")
     public String updateApp(@PathVariable("id") int id,@RequestBody @Valid TestInput testInput){
         return testService.updateApp(id,testInput);
+    }
+
+
+    @PostMapping("/configs")
+    public String addConfigs(@RequestBody @Valid Configs testInput){
+        return testService.addConfigs(testInput);
+
+    }
+    @GetMapping("/configs")
+    public Iterable<ClientConfigs> getAllCOnfigs(){
+        return testService.getAllConfigs();
+
+    }
+    @DeleteMapping("/configs/{id}")
+    public String getAllCOnfigs(@PathVariable("id") long id){
+        return testService.deleteConfig(id);
+
+    }
+    @PutMapping("/configs/{id}")
+    public String updateConfigs(@PathVariable("id") int id,@RequestBody @Valid Configs testInput){
+        return testService.updateConfigs(id,testInput);
     }
 }
