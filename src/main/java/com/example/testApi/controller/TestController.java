@@ -19,10 +19,10 @@ public class TestController {
         return testService.addApplication(testInput);
 
     }
-    @GetMapping(path="/all")
-    public @ResponseBody Iterable<RequestingApp> getAllUsers() {
+    @GetMapping(path="/getapps/{offset}/{size}")
+    public @ResponseBody Iterable<RequestingApp> getAllUsers(@PathVariable("offset") int offset,@PathVariable("size") int size) {
         // This returns a JSON or XML with the users
-        return testService.getAll();
+        return testService.getApps(offset,size);
     }
     @DeleteMapping("/app/{id}")
     public String deleteapp(@PathVariable("id") int id){

@@ -8,6 +8,7 @@ import com.example.testApi.repository.ClientConfigsRepo;
 import com.example.testApi.repository.RequestingAppRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.auth.credentials.*;
 import software.amazon.awssdk.regions.Region;
@@ -101,8 +102,8 @@ public class TestService {
         return secretsClient;
     }
 
-    public Iterable<RequestingApp> getAll() {
-        return requestingAppRepo.findAll();
+    public Iterable<RequestingApp> getApps(int offset,int pagesize) {
+        return requestingAppRepo.findAll(PageRequest.of(offset,pagesize));
     }
 
     public String deleteApp(long id) {
