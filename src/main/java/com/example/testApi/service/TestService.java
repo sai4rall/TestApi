@@ -6,36 +6,29 @@ import com.example.testApi.model.RequestingApp;
 import com.example.testApi.model.TestInput;
 import com.example.testApi.repository.ClientConfigsRepo;
 import com.example.testApi.repository.RequestingAppRepo;
+import com.example.testApi.util.AwsSecretmanagerUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
-import software.amazon.awssdk.auth.credentials.*;
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
-import software.amazon.awssdk.services.secretsmanager.model.CreateSecretRequest;
-import software.amazon.awssdk.services.secretsmanager.model.CreateSecretResponse;
-import software.amazon.awssdk.services.secretsmanager.model.SecretsManagerException;
-import software.amazon.awssdk.services.secretsmanager.model.UpdateSecretRequest;
+
 
 import java.util.Optional;
 
 @Service
 public class TestService {
-    @Value("${aws.accessKeyId}")
-    String awskeyId;
-
-    @Value("${aws.secret.access.key}")
-    String awssecretKey;
 
     @Autowired
     RequestingAppRepo requestingAppRepo;
     @Autowired
     ClientConfigsRepo clientConfigsRepo;
+
+    @Autowired
+    AwsSecretmanagerUtil awsSecretmanagerUtil;
     public String addApplication(TestInput testInput) {
         String secret = "{\"Username\":\"" + testInput.getUsername() + "\", \"Password\":\"" + testInput.getPassword() + "\"}";
 
-        if (createNewSecret(testInput.getRequestingApplicationName(), secret)) {
+        if (awsSecretmanagerUtil.createNewSecret(testInput.getRequestingApplicationName(), secret)) {
             //do mysql
             RequestingApp requestingApp=new RequestingApp();
             requestingApp.setRequestingApplicationName(testInput.getRequestingApplicationName());
@@ -51,56 +44,6 @@ public class TestService {
     }
 
 
-    private boolean createNewSecret(String secretName, String secretValue) {
-
-        SecretsManagerClient secretsClient = getSecretManagerClient();
-        try {
-            CreateSecretRequest secretRequest = CreateSecretRequest.builder()
-                    .name(secretName)
-                    .description("This secret was created by the AWS Secret Manager Java API")
-                    .secretString(secretValue)
-                    .build();
-
-            CreateSecretResponse secretResponse = secretsClient.createSecret(secretRequest);
-            System.out.println(secretResponse.arn());
-            return true;
-
-        } catch (SecretsManagerException e) {
-            throw e;
-        }
-    }
-    public  boolean updateMySecret( String secretName, String secretValue) {
-        SecretsManagerClient secretsClient = getSecretManagerClient();
-
-        try {
-            UpdateSecretRequest secretRequest = UpdateSecretRequest.builder()
-                    .secretId(secretName)
-                    .secretString(secretValue)
-                    .build();
-
-            secretsClient.updateSecret(secretRequest);
-            return true;
-
-        } catch (SecretsManagerException e) {
-            System.err.println(e.awsErrorDetails().errorMessage());
-            return false;
-
-        }
-    }
-    public SecretsManagerClient getSecretManagerClient(){
-        AwsBasicCredentials awsCreds = AwsBasicCredentials.create(
-                awskeyId,
-                awssecretKey);
-        SecretsManagerClient secretsClient = SecretsManagerClient.builder()
-                .region(Region.US_EAST_1)
-                .credentialsProvider(new AwsCredentialsProvider() {
-                    @Override
-                    public AwsCredentials resolveCredentials() {
-                        return awsCreds;
-                    }
-                }) .build();
-        return secretsClient;
-    }
 
     public Iterable<RequestingApp> getApps(int offset,int pagesize) {
         return requestingAppRepo.findAll(PageRequest.of(offset,pagesize));
@@ -119,7 +62,7 @@ public class TestService {
         Optional<RequestingApp> app=requestingAppRepo.findById(id);
         String secret = "{\"Username\":\"" + testInput.getUsername() + "\", \"Password\":\"" + testInput.getPassword() + "\"}";
         if(app.isPresent()){
-            if(updateMySecret(testInput.getRequestingApplicationName(), secret)){
+            if(awsSecretmanagerUtil.updateMySecret(testInput.getRequestingApplicationName(), secret)){
                 RequestingApp requestingApp=app.get();
                 requestingApp.setRequestingApplicationName(testInput.getRequestingApplicationName());
                 requestingApp.setDbCredentionalsConfigured(1);
