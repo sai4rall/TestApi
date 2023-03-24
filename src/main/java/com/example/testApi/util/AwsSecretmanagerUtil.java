@@ -9,13 +9,9 @@ import software.amazon.awssdk.services.secretsmanager.model.SecretsManagerExcept
 import software.amazon.awssdk.services.secretsmanager.model.UpdateSecretRequest;
 public class AwsSecretmanagerUtil
 {
-    @Value("${aws.accessKeyId}")
-    String awskeyId;
 
-    @Value("${aws.secret.access.key}")
-    String awssecretKey;
 
-    public boolean createNewSecret(String secretName, String secretValue) {
+    public  boolean createNewSecret(String secretName, String secretValue) {
 
         SecretsManagerClient secretsClient = getSecretManagerClient();
         try {
@@ -33,7 +29,7 @@ public class AwsSecretmanagerUtil
             throw e;
         }
     }
-    public  boolean updateMySecret( String secretName, String secretValue) {
+    public   boolean updateMySecret( String secretName, String secretValue) {
         SecretsManagerClient secretsClient = getSecretManagerClient();
 
         try {
@@ -51,18 +47,11 @@ public class AwsSecretmanagerUtil
 
         }
     }
-    public SecretsManagerClient getSecretManagerClient(){
-        AwsBasicCredentials awsCreds = AwsBasicCredentials.create(
-                awskeyId,
-                awssecretKey);
+    public static SecretsManagerClient getSecretManagerClient(){
+
         SecretsManagerClient secretsClient = SecretsManagerClient.builder()
                 .region(Region.US_EAST_1)
-                .credentialsProvider(new AwsCredentialsProvider() {
-                    @Override
-                    public AwsCredentials resolveCredentials() {
-                        return awsCreds;
-                    }
-                }) .build();
+                .credentialsProvider( ProfileCredentialsProvider.create()) .build();
         return secretsClient;
     }
 }
